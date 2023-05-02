@@ -11,6 +11,8 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,28 +46,36 @@ public class MarkdownRender implements Render {
    */
   protected boolean showChangedMetadata;
 
+  @Override
   public String render(ChangedOpenApi diff) {
+    throw new UnsupportedOperationException();
+  }
+
+  public void render(ChangedOpenApi diff, String outPutFile) {
     this.diff = diff;
     this.handledSchemas.clear();
-    return listEndpoints("What's New", diff.getNewEndpoints())
-        + listEndpoints("What's Deleted", diff.getMissingEndpoints())
-        + listEndpoints("What's Deprecated", diff.getDeprecatedEndpoints())
-        + listEndpoints(diff.getChangedOperations());
+	try (FileWriter fileWriter = new FileWriter(outPutFile)) {
+		listEndpoints("What's New", diff.getNewEndpoints(), fileWriter);
+		listEndpoints("What's Deleted", diff.getMissingEndpoints(), fileWriter);
+		listEndpoints("What's Deprecated", diff.getDeprecatedEndpoints(), fileWriter);
+		listEndpoints(diff.getChangedOperations(), fileWriter);
+	} catch (IOException ex) {
+		throw new RuntimeException(ex);
+	}
   }
 
   protected String sectionTitle(String title) {
     return H4 + title + '\n' + HR + '\n';
   }
 
-  protected String listEndpoints(String title, List<Endpoint> endpoints) {
+  protected void listEndpoints(String title, List<Endpoint> endpoints, FileWriter fileWriter) {
     if (null == endpoints || endpoints.isEmpty()) {
-      return "";
+      return;
     }
-    StringBuilder sb = new StringBuilder(sectionTitle(title));
+    appendString(fileWriter, sectionTitle(title));
     endpoints.stream()
         .map(e -> itemEndpoint(e.getMethod().toString(), e.getPathUrl(), e.getSummary()))
-        .forEach(sb::append);
-    return sb.toString();
+        .forEach(s -> appendString(fileWriter, s));
   }
 
   protected String itemEndpoint(String method, String path, String summary) {
@@ -80,41 +90,34 @@ public class MarkdownRender implements Render {
     return H6 + title + '\n';
   }
 
-  protected String listEndpoints(List<ChangedOperation> changedOperations) {
+  protected void listEndpoints(List<ChangedOperation> changedOperations, FileWriter fileWriter) {
     if (null == changedOperations || changedOperations.isEmpty()) {
-      return "";
+      return;
     }
-    StringBuilder sb = new StringBuilder(sectionTitle("What's Changed"));
-    changedOperations.stream()
-        .map(
-            operation -> {
-              StringBuilder details =
-                  new StringBuilder()
-                      .append(
-                          itemEndpoint(
-                              operation.getHttpMethod().toString(),
-                              operation.getPathUrl(),
-                              operation.getSummary()));
-              if (result(operation.getParameters()).isDifferent()) {
-                details
-                    .append(titleH5("Parameters:"))
-                    .append(parameters(operation.getParameters()));
-              }
-              if (operation.resultRequestBody().isDifferent()) {
-                details
-                    .append(titleH5("Request:"))
-                    .append(metadata("Description", operation.getRequestBody().getDescription()))
-                    .append(bodyContent(operation.getRequestBody().getContent()));
-              }
-              if (operation.resultApiResponses().isDifferent()) {
-                details
-                    .append(titleH5("Return Type:"))
-                    .append(responses(operation.getApiResponses()));
-              }
-              return details.toString();
-            })
-        .forEach(sb::append);
-    return sb.toString();
+    appendString(fileWriter, sectionTitle("What's Changed"));
+    changedOperations.forEach(
+        operation -> {
+          appendString(
+              fileWriter,
+              itemEndpoint(
+                  operation.getHttpMethod().toString(),
+                  operation.getPathUrl(),
+                  operation.getSummary()));
+          if (result(operation.getParameters()).isDifferent()) {
+            appendString(fileWriter, titleH5("Parameters:"));
+            appendString(fileWriter, parameters(operation.getParameters()));
+          }
+          if (operation.resultRequestBody().isDifferent()) {
+            appendString(fileWriter, titleH5("Request:"));
+            appendString(
+                fileWriter, metadata("Description", operation.getRequestBody().getDescription()));
+            appendString(fileWriter, bodyContent(operation.getRequestBody().getContent()));
+          }
+          if (operation.resultApiResponses().isDifferent()) {
+            appendString(fileWriter, titleH5("Return Type:"));
+            appendString(fileWriter, responses(operation.getApiResponses()));
+          }
+        });
   }
 
   protected String responses(ChangedApiResponse changedApiResponse) {
@@ -568,5 +571,13 @@ public class MarkdownRender implements Render {
    */
   public void setShowChangedMetadata(final boolean showChangedMetadata) {
     this.showChangedMetadata = showChangedMetadata;
+  }
+
+  private void appendString(FileWriter fileWriter, String stringText) {
+    try {
+      fileWriter.write(stringText);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

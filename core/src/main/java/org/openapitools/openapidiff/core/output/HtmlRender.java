@@ -32,6 +32,7 @@ import j2html.tags.specialized.HtmlTag;
 import j2html.tags.specialized.LiTag;
 import j2html.tags.specialized.OlTag;
 import j2html.tags.specialized.UlTag;
+import java.io.FileWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,6 +88,11 @@ public class HtmlRender implements Render {
     OlTag ol_changed = ol_changed(changedOperations);
 
     return renderHtml(ol_newEndpoint, ol_missingEndpoint, ol_deprecatedEndpoint, ol_changed);
+  }
+
+  @Override
+  public void render(ChangedOpenApi diff, String outPutFile) {
+    throw new UnsupportedOperationException();
   }
 
   public String renderHtml(OlTag ol_new, OlTag ol_miss, OlTag ol_deprec, OlTag ol_changed) {

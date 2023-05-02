@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import java.io.FileWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,6 +58,11 @@ public class ConsoleRender implements Render {
           .append(separator('-'));
     }
     return output.toString();
+  }
+
+  @Override
+  public void render(ChangedOpenApi diff, String outPutFile) {
+    throw new UnsupportedOperationException();
   }
 
   private String ol_changed(List<ChangedOperation> operations) {
