@@ -11,6 +11,7 @@ public class AllOfDiffTest {
   private final String OPENAPI_DOC2 = "allOf_diff_2.yaml";
   private final String OPENAPI_DOC3 = "allOf_diff_3.yaml";
   private final String OPENAPI_DOC4 = "allOf_diff_4.yaml";
+  private final String OPENAPI_DOC5 = "allOf_diff_5.yaml";
 
   @Test
   public void testDiffSame() {
@@ -30,5 +31,10 @@ public class AllOfDiffTest {
   @Test
   public void testDiffDifferent2() {
     assertOpenApiChangedEndpoints(OPENAPI_DOC1, OPENAPI_DOC4);
+  }
+
+  @Test
+  public void testDiffDifferent3() {
+    assertOpenApiChangedEndpoints(OPENAPI_DOC1, OPENAPI_DOC5);
   }
 }

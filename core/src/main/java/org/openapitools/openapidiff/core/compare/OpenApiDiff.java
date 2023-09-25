@@ -97,7 +97,7 @@ public class OpenApiDiff {
             valOrEmpty(oldSpecOpenApi.getPaths()), valOrEmpty(newSpecOpenApi.getPaths()));
 
     // 2nd pass processes deferred schemas
-    deferredSchemaCache.process();
+    deferredSchemaCache.process(paths);
 
     this.newEndpoints = new ArrayList<>();
     this.missingEndpoints = new ArrayList<>();

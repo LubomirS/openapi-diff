@@ -10,12 +10,17 @@ import java.util.Queue;
 import java.util.stream.Collectors;
 import org.openapitools.openapidiff.core.compare.CacheKey;
 import org.openapitools.openapidiff.core.compare.OpenApiDiff;
+import org.openapitools.openapidiff.core.compare.PathDiff;
+import org.openapitools.openapidiff.core.model.Changed;
+import org.openapitools.openapidiff.core.model.ChangedPaths;
 import org.openapitools.openapidiff.core.model.ChangedSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DeferredSchemaCache {
   private static final Logger log = LoggerFactory.getLogger(DeferredSchemaCache.class);
+
+  private final DeferredBuilder<Changed> builder = new DeferredBuilder<>();
 
   private final Map<CacheKey, SchemaDiffOperation> cache = new LinkedHashMap<>();
   private final Queue<CacheKey> processingQueue = new ArrayDeque<>();
@@ -60,8 +65,8 @@ public class DeferredSchemaCache {
     return operation.diffResult;
   }
 
-  public void process() {
-    processSchemaQueue();
+  public void process(DeferredChanged<ChangedPaths> paths) {
+    processSchemaQueue(paths);
     //        while(! deferredOperations.isEmpty()) {
     //            processSchemaQueue();
     //            DeferredOperation op = deferredOperations.poll();
@@ -72,7 +77,7 @@ public class DeferredSchemaCache {
     //        }
   }
 
-  public void processSchemaQueue() {
+  public void processSchemaQueue(DeferredChanged<ChangedPaths> changedPaths) {
     PendingChanged.logResolved();
     while (!processingQueue.isEmpty()) {
       CacheKey key = processingQueue.poll();
@@ -90,6 +95,9 @@ public class DeferredSchemaCache {
             value -> {
               log.debug("Schema processed {} {}", key, DeferredLogger.logValue(value));
               operation.diffResult.setValue(value);
+			  //need to set the change paths because of model change in an operation
+//			  PathDiff pathDiff = new PathDiff();
+//			  changedPaths.get().getChanged().put("abc", operation.diffResult.get());
             });
         log.debug("Processing schema started {}", key);
       }

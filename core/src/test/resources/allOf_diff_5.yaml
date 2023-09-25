@@ -102,7 +102,7 @@ components:
           type: string
     Pet:
       allOf:
-      - $ref: '#/components/schemas/BasePet'
+        - $ref: '#/components/schemas/BasePet'
       type: object
       discriminator:
         propertyName: pet_type
@@ -110,16 +110,16 @@ components:
           dog: '#/components/schemas/Dog'
           cat: '#/components/schemas/Cat'
       required:
-      - pet_type
+        - pet_type
       properties:
         pet_type:
           nullable: false
           allOf:
-          - type: string
+            - type: string
     Cat:
       description: Cat class
       allOf:
-      - $ref: '#/components/schemas/Pet'
+        - $ref: '#/components/schemas/Pet'
       type: object
       discriminator:
         propertyName: pet_type
@@ -133,7 +133,7 @@ components:
     Dog:
       description: Dog class
       allOf:
-      - $ref: '#/components/schemas/Pet'
+        - $ref: '#/components/schemas/Pet'
       type: object
       discriminator:
         propertyName: pet_type
@@ -161,6 +161,8 @@ components:
         - type: object
           properties:
             size:
+              type: string
+            material:
               type: string
       discriminator:
         propertyName: toy_type

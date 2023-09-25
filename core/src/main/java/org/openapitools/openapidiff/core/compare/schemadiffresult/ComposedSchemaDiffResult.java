@@ -43,9 +43,6 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
       ComposedSchema rightComposedSchema = (ComposedSchema) right;
       DeferredBuilder<ChangedSchema> discriminatorChangedBuilder = new DeferredBuilder<>();
 
-      if (CollectionUtils.isNotEmpty(leftComposedSchema.getOneOf())
-          || CollectionUtils.isNotEmpty(rightComposedSchema.getOneOf())) {
-
         Discriminator leftDis = leftComposedSchema.getDiscriminator();
         Discriminator rightDis = rightComposedSchema.getDiscriminator();
         if ((leftDis == null && rightDis != null)
@@ -92,7 +89,8 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
                         .setIncreased(mappingDiff.getIncreased())
                         .setMissing(mappingDiff.getMissing())
                         .setChanged(changedMapping)));
-      }
+      //}
+
 
       return discriminatorChangedBuilder
           .build()
@@ -117,20 +115,14 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
 
   private Map<String, String> getMapping(ComposedSchema composedSchema) {
     Map<String, String> reverseMapping = new LinkedHashMap<>();
-    for (Schema<?> schema : composedSchema.getOneOf()) {
-      String ref = schema.get$ref();
-      if (ref == null) {
-        continue;
-      }
-      String schemaName = refPointer.getRefName(ref);
-      if (schemaName == null) {
-        throw new IllegalArgumentException("invalid schema: " + ref);
-      }
-      reverseMapping.put(ref, schemaName);
-    }
-
-    if (composedSchema.getDiscriminator() != null
-        && composedSchema.getDiscriminator().getMapping() != null) {
+	if (composedSchema.getOneOf() != null) {
+	  getMapping(composedSchema.getOneOf(), reverseMapping);
+	}
+	if (composedSchema.getAllOf() != null) {
+	  getMapping(composedSchema.getAllOf(), reverseMapping);
+	}
+	if (composedSchema.getDiscriminator() != null
+      && composedSchema.getDiscriminator().getMapping() != null) {
       for (String ref : composedSchema.getDiscriminator().getMapping().keySet()) {
         reverseMapping.put(composedSchema.getDiscriminator().getMapping().get(ref), ref);
       }
@@ -140,7 +132,21 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
         .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
   }
 
-  private Map<String, Schema> getUnnamedSchemas(List<Schema> schemas, String name) {
+	private static void getMapping(List<Schema> schemas, Map<String, String> reverseMapping) {
+	  for (Schema<?> schema : schemas) {
+	    String ref = schema.get$ref();
+	    if (ref == null) {
+	  	continue;
+	    }
+	    String schemaName = refPointer.getRefName(ref);
+	    if (schemaName == null) {
+	  	throw new IllegalArgumentException("invalid schema: " + ref);
+	    }
+	    reverseMapping.put(ref, schemaName);
+	  }
+	}
+
+	private Map<String, Schema> getUnnamedSchemas(List<Schema> schemas, String name) {
     Map<String, Schema> result = new LinkedHashMap<>();
 
     if (schemas == null) {
