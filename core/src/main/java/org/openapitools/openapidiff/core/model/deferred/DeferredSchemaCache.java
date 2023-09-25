@@ -10,7 +10,6 @@ import java.util.Queue;
 import java.util.stream.Collectors;
 import org.openapitools.openapidiff.core.compare.CacheKey;
 import org.openapitools.openapidiff.core.compare.OpenApiDiff;
-import org.openapitools.openapidiff.core.compare.PathDiff;
 import org.openapitools.openapidiff.core.model.Changed;
 import org.openapitools.openapidiff.core.model.ChangedPaths;
 import org.openapitools.openapidiff.core.model.ChangedSchema;
@@ -95,9 +94,9 @@ public class DeferredSchemaCache {
             value -> {
               log.debug("Schema processed {} {}", key, DeferredLogger.logValue(value));
               operation.diffResult.setValue(value);
-			  //need to set the change paths because of model change in an operation
-//			  PathDiff pathDiff = new PathDiff();
-//			  changedPaths.get().getChanged().put("abc", operation.diffResult.get());
+              // need to set the change paths because of model change in an operation
+              //			  PathDiff pathDiff = new PathDiff();
+              //			  changedPaths.get().getChanged().put("abc", operation.diffResult.get());
             });
         log.debug("Processing schema started {}", key);
       }

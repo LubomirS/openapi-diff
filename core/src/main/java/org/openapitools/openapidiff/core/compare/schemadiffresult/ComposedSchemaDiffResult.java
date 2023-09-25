@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
 import org.openapitools.openapidiff.core.compare.MapKeyDiff;
 import org.openapitools.openapidiff.core.compare.OpenApiDiff;
 import org.openapitools.openapidiff.core.model.ChangedOneOfSchema;
@@ -43,54 +42,53 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
       ComposedSchema rightComposedSchema = (ComposedSchema) right;
       DeferredBuilder<ChangedSchema> discriminatorChangedBuilder = new DeferredBuilder<>();
 
-        Discriminator leftDis = leftComposedSchema.getDiscriminator();
-        Discriminator rightDis = rightComposedSchema.getDiscriminator();
-        if ((leftDis == null && rightDis != null)
-            || (leftDis != null && rightDis == null)
-            || (leftDis != null
-                && rightDis != null
-                && ((leftDis.getPropertyName() == null && rightDis.getPropertyName() != null)
-                    || (leftDis.getPropertyName() != null && rightDis.getPropertyName() == null)
-                    || (leftDis.getPropertyName() != null
-                        && rightDis.getPropertyName() != null
-                        && !leftDis.getPropertyName().equals(rightDis.getPropertyName()))))) {
-          changedSchema.setOldSchema(left);
-          changedSchema.setNewSchema(right);
-          changedSchema.setDiscriminatorPropertyChanged(true);
-          changedSchema.setContext(context);
-          return new RealizedChanged<>(Optional.of(changedSchema));
-        }
+      Discriminator leftDis = leftComposedSchema.getDiscriminator();
+      Discriminator rightDis = rightComposedSchema.getDiscriminator();
+      if ((leftDis == null && rightDis != null)
+          || (leftDis != null && rightDis == null)
+          || (leftDis != null
+              && rightDis != null
+              && ((leftDis.getPropertyName() == null && rightDis.getPropertyName() != null)
+                  || (leftDis.getPropertyName() != null && rightDis.getPropertyName() == null)
+                  || (leftDis.getPropertyName() != null
+                      && rightDis.getPropertyName() != null
+                      && !leftDis.getPropertyName().equals(rightDis.getPropertyName()))))) {
+        changedSchema.setOldSchema(left);
+        changedSchema.setNewSchema(right);
+        changedSchema.setDiscriminatorPropertyChanged(true);
+        changedSchema.setContext(context);
+        return new RealizedChanged<>(Optional.of(changedSchema));
+      }
 
-        Map<String, String> leftMapping = getMapping(leftComposedSchema);
-        Map<String, String> rightMapping = getMapping(rightComposedSchema);
+      Map<String, String> leftMapping = getMapping(leftComposedSchema);
+      Map<String, String> rightMapping = getMapping(rightComposedSchema);
 
-        MapKeyDiff<String, Schema> mappingDiff =
-            MapKeyDiff.diff(
-                getSchema(leftComponents, leftMapping, leftComposedSchema),
-                getSchema(rightComponents, rightMapping, rightComposedSchema));
-        Map<String, ChangedSchema> changedMapping = new LinkedHashMap<>();
-        for (String key : mappingDiff.getSharedKey()) {
-          Schema<?> leftSchema = new Schema<>();
-          leftSchema.set$ref(leftMapping.get(key));
-          Schema<?> rightSchema = new Schema<>();
-          rightSchema.set$ref(rightMapping.get(key));
-          discriminatorChangedBuilder
-              .with(
-                  openApiDiff
-                      .getSchemaDiff()
-                      .diff(refSet, leftSchema, rightSchema, context.copyWithRequired(true)))
-              .ifPresent(schema -> changedMapping.put(key, schema));
-        }
+      MapKeyDiff<String, Schema> mappingDiff =
+          MapKeyDiff.diff(
+              getSchema(leftComponents, leftMapping, leftComposedSchema),
+              getSchema(rightComponents, rightMapping, rightComposedSchema));
+      Map<String, ChangedSchema> changedMapping = new LinkedHashMap<>();
+      for (String key : mappingDiff.getSharedKey()) {
+        Schema<?> leftSchema = new Schema<>();
+        leftSchema.set$ref(leftMapping.get(key));
+        Schema<?> rightSchema = new Schema<>();
+        rightSchema.set$ref(rightMapping.get(key));
+        discriminatorChangedBuilder
+            .with(
+                openApiDiff
+                    .getSchemaDiff()
+                    .diff(refSet, leftSchema, rightSchema, context.copyWithRequired(true)))
+            .ifPresent(schema -> changedMapping.put(key, schema));
+      }
 
-        discriminatorChangedBuilder.whenSet(
-            composedSchemas ->
-                changedSchema.setOneOfSchema(
-                    new ChangedOneOfSchema(leftMapping, rightMapping, context)
-                        .setIncreased(mappingDiff.getIncreased())
-                        .setMissing(mappingDiff.getMissing())
-                        .setChanged(changedMapping)));
-      //}
-
+      discriminatorChangedBuilder.whenSet(
+          composedSchemas ->
+              changedSchema.setOneOfSchema(
+                  new ChangedOneOfSchema(leftMapping, rightMapping, context)
+                      .setIncreased(mappingDiff.getIncreased())
+                      .setMissing(mappingDiff.getMissing())
+                      .setChanged(changedMapping)));
+      // }
 
       return discriminatorChangedBuilder
           .build()
@@ -115,14 +113,14 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
 
   private Map<String, String> getMapping(ComposedSchema composedSchema) {
     Map<String, String> reverseMapping = new LinkedHashMap<>();
-	if (composedSchema.getOneOf() != null) {
-	  getMapping(composedSchema.getOneOf(), reverseMapping);
-	}
-	if (composedSchema.getAllOf() != null) {
-	  getMapping(composedSchema.getAllOf(), reverseMapping);
-	}
-	if (composedSchema.getDiscriminator() != null
-      && composedSchema.getDiscriminator().getMapping() != null) {
+    if (composedSchema.getOneOf() != null) {
+      getMapping(composedSchema.getOneOf(), reverseMapping);
+    }
+    if (composedSchema.getAllOf() != null) {
+      getMapping(composedSchema.getAllOf(), reverseMapping);
+    }
+    if (composedSchema.getDiscriminator() != null
+        && composedSchema.getDiscriminator().getMapping() != null) {
       for (String ref : composedSchema.getDiscriminator().getMapping().keySet()) {
         reverseMapping.put(composedSchema.getDiscriminator().getMapping().get(ref), ref);
       }
@@ -132,21 +130,21 @@ public class ComposedSchemaDiffResult extends SchemaDiffResult {
         .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
   }
 
-	private static void getMapping(List<Schema> schemas, Map<String, String> reverseMapping) {
-	  for (Schema<?> schema : schemas) {
-	    String ref = schema.get$ref();
-	    if (ref == null) {
-	  	continue;
-	    }
-	    String schemaName = refPointer.getRefName(ref);
-	    if (schemaName == null) {
-	  	throw new IllegalArgumentException("invalid schema: " + ref);
-	    }
-	    reverseMapping.put(ref, schemaName);
-	  }
-	}
+  private static void getMapping(List<Schema> schemas, Map<String, String> reverseMapping) {
+    for (Schema<?> schema : schemas) {
+      String ref = schema.get$ref();
+      if (ref == null) {
+        continue;
+      }
+      String schemaName = refPointer.getRefName(ref);
+      if (schemaName == null) {
+        throw new IllegalArgumentException("invalid schema: " + ref);
+      }
+      reverseMapping.put(ref, schemaName);
+    }
+  }
 
-	private Map<String, Schema> getUnnamedSchemas(List<Schema> schemas, String name) {
+  private Map<String, Schema> getUnnamedSchemas(List<Schema> schemas, String name) {
     Map<String, Schema> result = new LinkedHashMap<>();
 
     if (schemas == null) {

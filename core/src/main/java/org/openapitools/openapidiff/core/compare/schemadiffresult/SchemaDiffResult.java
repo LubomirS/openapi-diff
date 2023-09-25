@@ -7,7 +7,6 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.media.Schema;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.openapitools.openapidiff.core.compare.ListDiff;
 import org.openapitools.openapidiff.core.compare.MapKeyDiff;
 import org.openapitools.openapidiff.core.compare.OpenApiDiff;
@@ -94,7 +93,7 @@ public class SchemaDiffResult {
     Map<String, Schema> rightProperties = right.getProperties();
     MapKeyDiff<String, Schema> propertyDiff = MapKeyDiff.diff(leftProperties, rightProperties);
     compareDiscriminatorMapping(refSet, leftComponents, rightComponents, left, right, context);
-	for (String key : propertyDiff.getSharedKey()) {
+    for (String key : propertyDiff.getSharedKey()) {
       builder
           .with(
               openApiDiff
@@ -117,54 +116,53 @@ public class SchemaDiffResult {
     return builder.build().mapOptional(values -> isApplicable(context));
   }
 
-  private <V extends Schema<X>, X> void compareDiscriminatorMapping(RecursiveSchemaSet refSet,
-																	  Components leftComponents,
-																	  Components rightComponents,
-																	  V left,
-																	  V right,
-																	  DiffContext context) {
-	  Map<String, ChangedSchema> changedMapping = new LinkedHashMap<>();
-	  Map<String, String> leftMapping = getMapping(left);
-      Map<String, String> rightMapping = getMapping(right);
+  private <V extends Schema<X>, X> void compareDiscriminatorMapping(
+      RecursiveSchemaSet refSet,
+      Components leftComponents,
+      Components rightComponents,
+      V left,
+      V right,
+      DiffContext context) {
+    Map<String, ChangedSchema> changedMapping = new LinkedHashMap<>();
+    Map<String, String> leftMapping = getMapping(left);
+    Map<String, String> rightMapping = getMapping(right);
 
-	  MapKeyDiff<String, Schema> mappingDiff =
-            MapKeyDiff.diff(
-                getSchema(leftComponents, leftMapping),
-                getSchema(rightComponents, rightMapping));
+    MapKeyDiff<String, Schema> mappingDiff =
+        MapKeyDiff.diff(
+            getSchema(leftComponents, leftMapping), getSchema(rightComponents, rightMapping));
 
-	  DeferredBuilder<ChangedSchema> discriminatorChangedBuilder = new DeferredBuilder<>();
-	  for (String key : mappingDiff.getSharedKey()) {
-         Schema<?> leftSchema = new Schema<>();
-         leftSchema.set$ref(leftMapping.get(key));
-         Schema<?> rightSchema = new Schema<>();
-         rightSchema.set$ref(rightMapping.get(key));
-         discriminatorChangedBuilder
-             .with(
-                 openApiDiff
-                     .getSchemaDiff()
-                     .diff(refSet, leftSchema, rightSchema, context.copyWithRequired(true)))
-             .ifPresent(schema -> changedMapping.put(key, schema));
-      }
-	  discriminatorChangedBuilder.whenSet(
-            discriminatorSchemas ->
-                changedSchema.setOneOfSchema(
-                    new ChangedOneOfSchema(leftMapping, rightMapping, context)
-                        .setIncreased(mappingDiff.getIncreased())
-                        .setMissing(mappingDiff.getMissing())
-                        .setChanged(changedMapping)));
+    DeferredBuilder<ChangedSchema> discriminatorChangedBuilder = new DeferredBuilder<>();
+    for (String key : mappingDiff.getSharedKey()) {
+      Schema<?> leftSchema = new Schema<>();
+      leftSchema.set$ref(leftMapping.get(key));
+      Schema<?> rightSchema = new Schema<>();
+      rightSchema.set$ref(rightMapping.get(key));
+      discriminatorChangedBuilder
+          .with(
+              openApiDiff
+                  .getSchemaDiff()
+                  .diff(refSet, leftSchema, rightSchema, context.copyWithRequired(true)))
+          .ifPresent(schema -> changedMapping.put(key, schema));
+    }
+    discriminatorChangedBuilder.whenSet(
+        discriminatorSchemas ->
+            changedSchema.setOneOfSchema(
+                new ChangedOneOfSchema(leftMapping, rightMapping, context)
+                    .setIncreased(mappingDiff.getIncreased())
+                    .setMissing(mappingDiff.getMissing())
+                    .setChanged(changedMapping)));
   }
 
   protected Map<String, Schema> getSchema(Components components, Map<String, String> mapping) {
-	Map<String, Schema> result = new LinkedHashMap<>();
-	mapping.forEach(
-	    (key, value) -> result.put(key, refPointer.resolveRef(components, new Schema<>(), value)));
-	return result;
+    Map<String, Schema> result = new LinkedHashMap<>();
+    mapping.forEach(
+        (key, value) -> result.put(key, refPointer.resolveRef(components, new Schema<>(), value)));
+    return result;
   }
 
-  protected  <V extends Schema<X>, X> Map<String, String> getMapping(V schema) {
+  protected <V extends Schema<X>, X> Map<String, String> getMapping(V schema) {
     Map<String, String> reverseMapping = new LinkedHashMap<>();
-	if (schema.getDiscriminator() != null
-      && schema.getDiscriminator().getMapping() != null) {
+    if (schema.getDiscriminator() != null && schema.getDiscriminator().getMapping() != null) {
       for (String ref : schema.getDiscriminator().getMapping().keySet()) {
         reverseMapping.put(schema.getDiscriminator().getMapping().get(ref), ref);
       }
