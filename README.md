@@ -14,7 +14,7 @@ Compare two OpenAPI specifications (3.x) and render the difference to HTML plain
 [![Docker Image Version](https://img.shields.io/docker/v/openapitools/openapi-diff?sort=semver)](https://hub.docker.com/r/openapitools/openapi-diff/tags)
 
 # Requirements
-
+ 
 * Java 8
 
 # Feature
