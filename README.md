@@ -16,7 +16,7 @@ Compare two OpenAPI specifications (3.x) and render the difference to HTML plain
 # Requirements
  
 * Java 8
-
+ 
 # Feature
 
 * Supports OpenAPI spec v3.0.
